@@ -21,6 +21,8 @@ from flask import Response
 DB_NAME = 'carbon_scores.db'
 app = Flask(__name__)
 
+init_db()
+
 
 # Load joblib files
 pipeline = joblib.load("./notebooks/best_carbon_emission_model.joblib")
@@ -483,6 +485,5 @@ def clear_activity():
 
 if __name__ == "__main__":
     import os
-    init_db()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
