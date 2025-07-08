@@ -8,3 +8,4 @@ gunicorn
 seaborn
 joblib
 xhtml2pdf
+xgboost
