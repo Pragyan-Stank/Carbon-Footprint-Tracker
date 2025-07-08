@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Monthly Carbon Calendar</title>
+    <link rel="stylesheet" href="../static/css/calendar.css">
+</head>
+<body>
+    <h2 style="text-align: center;">🌱 Your Monthly Carbon Tracker</h2>
+    
+    <div class="calendar-container">
+        <div id="calendar" class="calendar-grid"></div>
+    </div>
+
+    <div class="legend-container">
+        <span><div class="legend-box score-none"></div> No Data</span>
+        <span><div class="legend-box score-low"></div> Low Emission</span>
+        <span><div class="legend-box score-medium"></div> Moderate Emission</span>
+        <span><div class="legend-box score-high"></div> High Emission</span>
+    </div>
+
+    <script>
+        async function fetchScores() {
+            const res = await fetch('/api/daily-scores');
+            return await res.json();
+        }
+
+        function getScoreClass(score) {
+            if (score === 0) return 'score-none';
+            if (score < 50) return 'score-low';
+            if (score < 100) return 'score-medium';
+            return 'score-high';
+        }
+
+        function generateCalendar(data) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const scoresMap = {};
+            data.forEach(entry => {
+                scoresMap[entry.date] = entry.score;
+            });
+
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = '';
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dd = String(day).padStart(2, '0');
+                const mm = String(month + 1).padStart(2, '0');
+                const yyyy = String(year);
+                const dateStr = `${yyyy}-${mm}-${dd}`;
+                const score = scoresMap[dateStr] || 0;
+                const className = getScoreClass(score);
+
+                const box = document.createElement('div');
+                box.className = `day-box ${className}`;
+                box.title = `${dateStr}: ${score} kg CO₂e`;
+                box.innerText = dd;
+
+                calendar.appendChild(box);
+            }
+        }
+
+        fetchScores().then(generateCalendar);
+    </script>
+</body>
+</html>

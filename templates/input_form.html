@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../static/css/input_form.css" />
+    <!-- <script src="../static/js/input_form.js" defer></script> -->
+    <title>Prediction</title>
+  </head>
+  <body>
+    <form method="POST" action="/predict">
+      {% for col in columns %}
+      <label for="{{ col }}">{{ col }}</label><br />
+
+      {% if col in dropdown_options %} {% if col in ['Recycling',
+      'Cooking_With'] %}
+      <!-- Multi-label checkboxes with unique ID and associated label -->
+      {% for option in dropdown_options[col] %}
+      <div class="checkbox-inline">
+        <input
+          type="checkbox"
+          id="{{ col }}_{{ loop.index }}"
+          name="{{ col }}"
+          value="{{ option }}"
+        />
+        <label for="{{ col }}_{{ loop.index }}">{{ option }}</label>
+      </div>
+      {% endfor %}
+
+      <br />
+      {% else %}
+      <!-- Single dropdown -->
+      <select name="{{ col }}">
+        <option value="">-- Select --</option>
+        {% for option in dropdown_options[col] %}
+        <option value="{{ option }}">{{ option }}</option>
+        {% endfor %}</select
+      ><br /><br />
+      {% endif %} {% else %}
+      <!-- Numeric text input -->
+      <input type="text" name="{{ col }}" /><br /><br />
+      {% endif %} {% endfor %}
+      <input type="submit" value="Submit" />
+    </form>
+  </body>
+</html>

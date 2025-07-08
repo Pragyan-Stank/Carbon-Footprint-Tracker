@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Carbon Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/dashboard.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="dynamic-stripe-bg"></div>
+
+    <div class="glass-wrapper">
+      <div class="main-glass-container">
+        <h1 class="dashboard-title">CarbonWise</h1>
+        <p class="dashboard-subtitle">AI powered carbon footprint management dashboard</p>
+
+        <div class="bento-grid">
+          <!-- Score Card -->
+          <div class="bento-box score-box">
+            <div class="score-circle">
+              <span>{{ latest_score }}</span>
+              <p>kg CO₂e</p>
+            </div>
+            <button onclick="window.location.href='/input'">
+              Find Your Carbon Score
+            </button>
+          </div>
+
+          <!-- Carbon Calendar -->
+          <div class="bento-box">
+            <div class="calendar-wrapper">
+              <h3>📅 Carbon Calendar</h3>
+              <div id="calendar" class="calendar-grid"></div>
+              <div class="legend-container">
+                <span
+                  ><div class="legend-box score-none"></div>
+                  No Data</span
+                >
+                <span
+                  ><div class="legend-box score-low"></div>
+                  Low</span
+                >
+                <span
+                  ><div class="legend-box score-medium"></div>
+                  Moderate</span
+                >
+                <span
+                  ><div class="legend-box score-high"></div>
+                  High</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Comparison Box -->
+          <div class="bento-box comparison-box">
+            <h3>You vs Global Average</h3>
+            <div class="progress-item">
+              <label
+                >Your Daily Average: <span>{{ user_avg }} kg CO₂</span></label
+              >
+              <div class="progress-bar">
+                <div
+                  class="progress-fill user-average"
+                  style="width: {{ (user_avg / global_avg) * 100 }}%;"
+                ></div>
+              </div>
+            </div>
+            <div class="progress-item">
+              <label
+                >Global Average: <span>{{ global_avg }} kg CO₂</span></label
+              >
+              <div class="progress-bar">
+                <div
+                  class="progress-fill global-average"
+                  style="width: 100%"
+                ></div>
+              </div>
+            </div>
+            <div class="progress-item">
+              <label>Your Goal: <span>{{ goal }} kg CO₂</span></label>
+              <div class="progress-bar">
+                <div
+                  class="progress-fill goal-average"
+                  style="width: {{ (goal / global_avg) * 100 }}%;"
+                ></div>
+              </div>
+            </div>
+            <p class="summary">🎉 {{ diff_percent }}% below average!</p>
+          </div>
+
+          <!-- Log Activity -->
+          <div class="bento-box log-activity-box">
+            <h3>Log Activity</h3>
+            <form method="POST" action="/log-activity" class="log-form">
+              <div class="form-group">
+                <label for="activity_type">Activity Type</label>
+                <select name="activity_type" id="activity_type" required>
+                  <option value="">-- Select --</option>
+                  <option value="Food">Food & Dining</option>
+                  <option value="Transport">Transport</option>
+                  <option value="Energy">Energy</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="details">Details</label>
+                <input
+                  type="text"
+                  name="details"
+                  id="details"
+                  placeholder="e.g., 10km car ride"
+                  required
+                />
+              </div>
+              <button type="submit" class="log-btn">Log Activity</button>
+            </form>
+          </div>
+
+          <!-- Recent Activities -->
+          <div class="bento-box activity-glass-box">
+            <h3>Recent Activities</h3>
+            <div class="activity-inner-card">
+              {% if recent_activities %} {% for act in recent_activities %}
+              <div class="activity-row">
+                <div>
+                  <div class="activity-title">{{ act[0] }}</div>
+                  <div class="activity-desc">{{ act[1] }}</div>
+                </div>
+                <div class="co2-badge-pill">{{ act[2] }} kg</div>
+              </div>
+              {% endfor %} {% else %}
+              <p>No recent activities logged.</p>
+              {% endif %}
+            </div>
+          </div>
+          <!-- Emissions -->
+          <div class="bento-box emissions-card">
+            <h3 class="emissions-title">Emissions by Category</h3>
+            <canvas id="emissionsChart" width="300" height="300"></canvas>
+            <div class="legend">
+              <span><span class="legend-color transport"></span>Transport</span>
+              <span><span class="legend-color food"></span>Food</span>
+              <span><span class="legend-color energy"></span>Energy</span>
+              <span><span class="legend-color shopping"></span>Shopping</span>
+            </div>
+          </div>
+
+          <!-- Weekly Trends -->
+          <div class="bento-box weekly-trends-box">
+            <h3 class="weekly-trends-title">📈 Weekly Trends</h3>
+            <canvas id="weeklyTrendsChart" width="300" height="200"></canvas>
+          </div>
+
+          <!-- Impact Simulator Card -->
+          <div class="bento-box impact-simulator-box">
+            <h3 class="impact-title">Impact Simulator</h3>
+
+            <form id="impactForm" class="impact-form">
+              <div class="impact-group">
+                <label for="currentMode">Replace</label>
+                <select id="currentMode" required>
+                  <option value="car">Driving (Car)</option>
+                  <option value="bus">Bus</option>
+                  <option value="train">Train</option>
+                </select>
+              </div>
+
+              <div class="impact-group">
+                <label for="newMode">With</label>
+                <select id="newMode" required>
+                  <option value="cycle">Cycling</option>
+                  <option value="walk">Walking</option>
+                </select>
+              </div>
+
+              <div class="impact-group">
+                <label for="distance">Distance per Trip (km)</label>
+                <input type="number" id="distance" min="1" required />
+              </div>
+
+              <div class="impact-group">
+                <label for="frequency">Trips per Week</label>
+                <input type="number" id="frequency" min="1" max="14" required />
+              </div>
+
+              <button type="submit" class="impact-btn">Simulate Impact</button>
+            </form>
+
+            <div
+              class="impact-results"
+              id="impactResults"
+              style="display: none"
+            >
+              <div class="impact-result">
+                <strong id="weeklyCO2">-</strong> <span>kg CO₂ / week</span>
+              </div>
+              <div class="impact-result">
+                <strong id="yearlyCO2">-</strong> <span>kg CO₂ / year</span>
+              </div>
+              <div class="impact-result">
+                <strong id="moneySaved">-</strong> <span>Saved yearly</span>
+              </div>
+              <div class="impact-result tree-row">
+                🌳 = <strong id="treesSaved">-</strong> trees planted
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Recommendations Card -->
+          <div class="bento-box ai-recommendation-box glass-effect">
+            <h3 class="card-title">AI Recommendations</h3>
+            <div class="recommendation-list" id="recommendationList">
+              <!-- Dynamic content loads here -->
+            </div>
+          </div>
+
+          <!-- Eco Warrior Card - Full Width -->
+          <div class="bento-box eco-warrior-box full-width">
+            <div class="eco-warrior-header">
+              <div class="eco-warrior-title">Eco Warrior</div>
+              <div class="eco-warrior-stats">
+                <div class="eco-warrior-points">-- pts</div>
+                <div class="eco-warrior-streak">
+                  <span class="streak-icon">❄️</span>
+                  <span class="streak-text">Loading streak...</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="eco-warrior-content">
+              <div class="eco-warrior-progress">
+                <div class="progress-text">0/0 goals achieved</div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div class="eco-warrior-goals" id="ecoGoalList">
+                <!-- Goals will be dynamically injected -->
+              </div>
+            </div>
+          </div>
+
+          <!-- summary report -->
+          <div class="bento-box report-export-box full-width">
+            <div class="report-header">
+              <div class="report-title">📄 Reports & Export</div>
+            </div>
+
+            <div class="report-controls">
+              <div>
+                <label>Report Type</label>
+                <select id="reportType">
+                  <option>Weekly Summary</option>
+                  <option>Monthly Overview</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="report-buttons">
+              <button onclick="window.open('/download-report')">
+                📥 Download PDF
+              </button>
+              <button onclick="window.open('/download-csv')">
+                📂 Download CSV
+              </button>
+            </div>
+
+            <div class="report-preview">
+              <h3>📑 Report Preview</h3>
+              <div class="preview-grid">
+                <div>
+                  <strong>Total Emissions:</strong>
+                  <span id="totalEmissions">--</span> kg CO₂
+                </div>
+                <div>
+                  <strong>Reduction Achieved:</strong>
+                  <span id="reductionPercent">--</span>%
+                </div>
+                <div>
+                  <strong>Money Saved:</strong>
+                  $<span id="reportMoneySaved">--</span>
+                </div>
+                <div>
+                  <strong>Trees Equivalent:</strong>
+                  <span id="treesPlanted" title="24 kg CO₂ = 1 tree/year">--</span> trees
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      async function fetchScores() {
+        const res = await fetch("/api/daily-scores");
+        return await res.json();
+      }
+
+      function getScoreClass(score) {
+        if (score === 0) return "score-none";
+        if (score < 50) return "score-low";
+        if (score < 100) return "score-medium";
+        return "score-high";
+      }
+
+      function generateCalendar(data) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        const scoresMap = {};
+        data.forEach((entry) => {
+          scoresMap[entry.date] = entry.score;
+        });
+
+        const calendar = document.getElementById("calendar");
+        calendar.innerHTML = "";
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dd = String(day).padStart(2, "0");
+          const mm = String(month + 1).padStart(2, "0");
+          const yyyy = String(year);
+          const dateStr = `${yyyy}-${mm}-${dd}`;
+          const score = scoresMap[dateStr] || 0;
+          const className = getScoreClass(score);
+
+          const box = document.createElement("div");
+          box.className = `day-box ${className}`;
+          box.title = `${dateStr}: ${score} kg CO₂e`;
+          box.innerText = dd;
+
+          calendar.appendChild(box);
+        }
+      }
+
+      fetchScores().then(generateCalendar);
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      async function loadEmissionsChart() {
+        const response = await fetch("/api/emissions-by-category");
+        const data = await response.json();
+
+        // Categories you want to show always
+        const categories = ["Transport", "Food", "Energy", "Shopping"];
+        const colors = ["#ff6b6b", "#7de2d1", "#4db9e6", "#b6e2b1"];
+
+        // ✅ Extract values in order
+        const values = categories.map((cat) => data[cat] || 0);
+
+        if (values.every((v) => v === 0)) {
+          document.getElementById("emissionsChart").parentNode.innerHTML +=
+            "<p style='color:#888; font-size:0.9rem;'>No activity data logged yet.</p>";
+          return;
+        }
+
+        const ctx = document.getElementById("emissionsChart").getContext("2d");
+        new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: categories,
+            datasets: [
+              {
+                data: values,
+                backgroundColor: colors,
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            cutout: "65%",
+            plugins: {
+              legend: { display: true },
+            },
+          },
+        });
+      }
+
+      loadEmissionsChart();
+    </script>
+
+    <script>
+      async function loadWeeklyTrendsChart() {
+        const response = await fetch("/api/daily-scores");
+        const rawData = await response.json();
+
+        // Prepare weekday data
+        const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        const weekdayTotals = new Array(7).fill(0);
+        const weekdayCounts = new Array(7).fill(0);
+
+        rawData.forEach((entry) => {
+          const date = new Date(entry.date);
+          const day = date.getDay(); // 0=Sun to 6=Sat
+          const weekdayIndex = (day + 6) % 7; // Shift so Mon=0
+          weekdayTotals[weekdayIndex] += entry.score;
+          weekdayCounts[weekdayIndex]++;
+        });
+
+        const averages = weekdayTotals.map((total, i) =>
+          weekdayCounts[i] ? total / weekdayCounts[i] : 0
+        );
+
+        const ctx = document
+          .getElementById("weeklyTrendsChart")
+          .getContext("2d");
+        new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: weekDays,
+            datasets: [
+              {
+                label: "Daily CO₂ (kg)",
+                data: averages,
+                borderColor: "#a37dff", // Purple line
+                backgroundColor: "rgba(163, 125, 255, 0.2)",
+                borderWidth: 3,
+                pointBackgroundColor: "#a37dff",
+                tension: 0.4,
+              },
+            ],
+          },
+          options: {
+            plugins: {
+              legend: {
+                labels: {
+                  color: "#000", // Black legend text
+                  font: {
+                    size: 14,
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                ticks: {
+                  color: "#000", // Black x-axis labels
+                },
+                grid: {
+                  color: "#00000022", // Faint black grid
+                },
+              },
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  color: "#000", // Black y-axis labels
+                },
+                grid: {
+                  color: "#00000022", // Faint black grid
+                },
+              },
+            },
+          },
+        });
+      }
+
+      loadWeeklyTrendsChart();
+    </script>
+
+    <!-- Script to handle simulation -->
+    <script>
+      document
+        .getElementById("impactForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const emissionRates = {
+            car: 0.142,
+            bus: 0.103,
+            train: 0.041,
+            cycle: 0,
+            walk: 0,
+          };
+
+          const fuelCostPerKm = 0.1; // in dollars
+          const treeOffsetKg = 24;
+
+          const currentMode = document.getElementById("currentMode").value;
+          const newMode = document.getElementById("newMode").value;
+          const distance = parseFloat(
+            document.getElementById("distance").value
+          );
+          const freq = parseFloat(document.getElementById("frequency").value);
+
+          const kmPerWeek = distance * freq * 2; // round trip
+
+          const co2Current = kmPerWeek * emissionRates[currentMode];
+          const co2New = kmPerWeek * emissionRates[newMode];
+          const weeklyCO2Saved = Math.max(0, co2Current - co2New);
+          const yearlyCO2Saved = weeklyCO2Saved * 52;
+          const moneySaved = kmPerWeek * fuelCostPerKm * 52;
+          const trees = Math.round(yearlyCO2Saved / treeOffsetKg);
+
+          document.getElementById(
+            "weeklyCO2"
+          ).innerText = `-${weeklyCO2Saved.toFixed(1)}`;
+          document.getElementById(
+            "yearlyCO2"
+          ).innerText = `-${yearlyCO2Saved.toFixed(0)}`;
+          document.getElementById(
+            "moneySaved"
+          ).innerText = `$${moneySaved.toFixed(0)}`;
+          document.getElementById("treesSaved").innerText = trees;
+
+          document.getElementById("impactResults").style.display = "grid";
+        });
+    </script>
+
+    <!-- ai recommendations -->
+    <script>
+      async function loadAIRecommendations() {
+        const res = await fetch("/api/ai-recommendations");
+        const recs = await res.json();
+
+        const container = document.getElementById("recommendationList");
+        container.innerHTML = "";
+
+        recs.forEach((rec) => {
+          const item = document.createElement("div");
+          item.className = "recommendation-item";
+
+          item.innerHTML = `
+        <div class="recommendation-icon">${rec.icon}</div>
+        <div class="recommendation-content">
+          <strong>${rec.title}</strong>
+          <span>${rec.desc}</span>
+        </div>
+      `;
+
+          container.appendChild(item);
+        });
+      }
+
+      loadAIRecommendations();
+    </script>
+
+    <!-- eco warrior, points, goals -->
+    <script>
+      async function loadEcoWarriorStats() {
+        try {
+          const res = await fetch("/api/eco-warrior-stats");
+          const stats = await res.json();
+
+          // 💠 Points
+          document.querySelector(
+            ".eco-warrior-points"
+          ).textContent = `${stats.points.toLocaleString()} pts`;
+
+          // 🔥 Streak
+          const streakIcon = stats.streak > 0 ? "🔥" : "❄️";
+          const streakText =
+            stats.streak > 0
+              ? `${stats.streak}-day streak`
+              : "No active streak";
+
+          document.querySelector(
+            ".eco-warrior-streak .streak-icon"
+          ).textContent = streakIcon;
+          document.querySelector(
+            ".eco-warrior-streak .streak-text"
+          ).textContent = streakText;
+
+          if (stats.streak >= 7) {
+            document
+              .querySelector(".eco-warrior-streak")
+              .classList.add("hot-streak");
+          } else {
+            document
+              .querySelector(".eco-warrior-streak")
+              .classList.remove("hot-streak");
+          }
+
+          // 📊 Progress Bar
+          const percent = (stats.completed_goals / stats.total_goals) * 100;
+          document.querySelector(
+            ".eco-warrior-progress .progress-text"
+          ).textContent = `${stats.completed_goals}/${stats.total_goals} goals achieved`;
+          document.querySelector(
+            ".eco-warrior-progress .progress-fill"
+          ).style.width = `${percent}%`;
+
+          // 🧾 Goal List Rendering
+          const container = document.getElementById("ecoGoalList");
+          container.innerHTML = ""; // Clear old goals
+
+          stats.goals.forEach((goal) => {
+            const goalItem = document.createElement("div");
+            goalItem.className = "goal-item";
+            goalItem.style.opacity = goal.completed ? 1 : 0.4;
+            goalItem.innerHTML = `${goal.icon} ${goal.title}`;
+            container.appendChild(goalItem);
+          });
+        } catch (err) {
+          console.error("Failed to load Eco Warrior stats:", err);
+        }
+      }
+
+      // Call on load
+      loadEcoWarriorStats();
+    </script>
+
+    <!-- toggle goals -->
+    <script>
+      async function loadEcoGoals() {
+        const res = await fetch("/api/eco-warrior-stats");
+        const data = await res.json();
+
+        const container = document.getElementById("ecoGoalList");
+        container.innerHTML = "";
+
+        const seen = new Set();
+        data.goals.forEach((goal) => {
+          const key = goal.title.toLowerCase().trim();
+          if (seen.has(key)) return;
+          seen.add(key);
+
+          const card = document.createElement("div");
+          card.className = "goal-card";
+          if (goal.completed) card.classList.add("completed");
+
+          card.textContent = `${goal.icon} ${goal.title}`;
+
+          if (!goal.completed) {
+            card.onclick = () => toggleGoal(goal.title);
+          }
+
+          container.appendChild(card);
+        });
+      }
+
+      async function toggleGoal(goalTitle) {
+        await fetch("/api/toggle-goal", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            user_id: "pragyan123",
+            goal_title: goalTitle,
+          }),
+        });
+
+        loadEcoGoals(); // Refresh the list
+      }
+
+      document.addEventListener("DOMContentLoaded", loadEcoGoals);
+    </script>
+
+    <!-- goals -->
+    <script>
+      async function loadEcoGoals() {
+        const res = await fetch("/api/eco-warrior-stats");
+        const data = await res.json();
+
+        const container = document.getElementById("ecoGoalList");
+        container.innerHTML = "";
+
+        const seen = new Set();
+        data.goals.forEach((goal) => {
+          const key = goal.title.toLowerCase().trim();
+          if (seen.has(key)) return;
+          seen.add(key);
+
+          const card = document.createElement("div");
+          card.className = "goal-card";
+          if (goal.completed) card.classList.add("completed");
+
+          card.textContent = `${goal.icon} ${goal.title}`;
+
+          if (!goal.completed) {
+            card.onclick = () => toggleGoal(goal.title);
+          }
+
+          container.appendChild(card);
+        });
+
+        // ✅ Update progress bar and streak
+        updateEcoStats(data);
+      }
+
+      function updateEcoStats(data) {
+        // Update streak and points
+        document.querySelector(
+          ".eco-warrior-points"
+        ).textContent = `${data.points} pts`;
+        document.querySelector(
+          ".streak-text"
+        ).textContent = `${data.streak} day streak`;
+
+        // Update progress bar
+        const completed = data.completed_goals;
+        const total = data.total_goals || 1; // avoid divide by 0
+        const percent = Math.round((completed / total) * 100);
+
+        document.querySelector(
+          ".progress-text"
+        ).textContent = `${completed}/${total} goals achieved`;
+        document.querySelector(".progress-fill").style.width = `${percent}%`;
+      }
+
+      async function toggleGoal(goalTitle) {
+        await fetch("/api/toggle-goal", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            user_id: "pragyan123",
+            goal_title: goalTitle,
+          }),
+        });
+
+        // ✅ Refresh everything without full page reload
+        loadEcoGoals();
+      }
+
+      document.addEventListener("DOMContentLoaded", loadEcoGoals);
+    </script>
+
+<script>
+  async function generateReport() {
+    try {
+      const reportType = document
+        .getElementById("reportType")
+        ?.value?.toLowerCase()
+        .includes("month")
+        ? "monthly"
+        : "weekly";
+
+      const res = await fetch(`/api/report-metrics?type=${reportType}`);
+      const data = await res.json();
+
+      console.log("✅ API data:", data); // Debugging aid
+
+      // Update values safely
+      document.getElementById("totalEmissions").textContent =
+        data.total_emissions ?? "--";
+      document.getElementById("reductionPercent").textContent =
+        data.reduction_percent ?? "--";
+      document.getElementById("reportMoneySaved").textContent =
+        data.money_saved ?? "--";
+      document.getElementById("treesPlanted").textContent =
+        data.trees_equivalent ?? "--";
+    } catch (err) {
+      console.error("❌ Failed to load report:", err);
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", generateReport);
+  document
+    .getElementById("reportType")
+    ?.addEventListener("change", generateReport);
+</script>
+
+  </body>
+</html>

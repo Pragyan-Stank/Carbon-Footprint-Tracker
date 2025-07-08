@@ -1,0 +1,77 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0fff4;
+    margin: 30px;
+}
+
+.calendar-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 60px);
+    gap: 12px;
+}
+
+/* Common day box styling */
+.day-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    color: #1a202c;
+    font-weight: bold;
+    text-align: center;
+    line-height: 60px;
+    font-size: 18px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.day-box:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    filter: brightness(1.1);
+    cursor: pointer;
+}
+
+/* Score levels */
+.score-none {
+    background-color: #ebedf0;
+}
+
+.score-low {
+    background-color: #2dae33;
+    color: white;
+}
+
+.score-medium {
+    background-color: #c4d666;
+    color: black;
+}
+
+.score-high {
+    background-color: #c76941;
+    color: black;
+}
+
+/* Legend styling */
+.legend-container {
+    text-align: center;
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.legend-box {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    margin-right: 8px;
+    vertical-align: middle;
+    border-radius: 4px;
+}

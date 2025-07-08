@@ -1,0 +1,91 @@
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: linear-gradient(to bottom right, #f0fff4, #c6f6d5);
+  margin: 0;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+form::before {
+  content: "🌿 Calculate Your Carbon Footprint";
+  display: block;
+  font-size: 1.8rem;
+  font-weight: bold;
+  text-align: center;
+  color: #2f855a;
+  margin-bottom: 2rem;
+}
+
+form {
+  background: white;
+  padding: 2rem 3rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 800px;
+  animation: fadeIn 0.8s ease;
+}
+
+label {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+input[type="text"],
+select {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  margin-top: 0.4rem;
+  margin-bottom: 1.2rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+input[type="text"]:focus,
+select:focus {
+  outline: none;
+  border-color: #48bb78;
+  box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.3);
+}
+
+.checkbox-inline {
+  display: inline-block;
+  margin-right: 1rem;
+  margin-top: 0.5rem;
+}
+
+input[type="checkbox"] {
+  margin-right: 0.3rem;
+}
+
+input[type="submit"] {
+  display: block;
+  margin: 1.5rem auto 0;
+  padding: 0.8rem 2rem;
+  background: linear-gradient(to right, #68d391, #48bb78);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+input[type="submit"]:hover {
+  background: linear-gradient(to right, #48bb78, #2f855a);
+  transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

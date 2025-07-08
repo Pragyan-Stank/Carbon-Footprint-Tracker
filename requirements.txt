@@ -1,0 +1,10 @@
+flask
+flask-firebase
+pandas
+numpy
+scikit-learn
+python-dotenv
+gunicorn
+seaborn
+joblib
+xhtml2pdf
