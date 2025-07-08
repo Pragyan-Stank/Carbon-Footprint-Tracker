@@ -4,7 +4,7 @@
 
 ## Preview
 
-![Dashboard Screenshot](![image](https://github.com/user-attachments/assets/fa017bc5-fbfd-4be2-9bce-dba7ca105e2d)
+Dashboard Screenshot ![image](https://github.com/user-attachments/assets/fa017bc5-fbfd-4be2-9bce-dba7ca105e2d)
 
 ---
 
