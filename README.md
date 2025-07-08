@@ -2,8 +2,9 @@
 
 **CarbonWise** is a sleek, intelligent web application that empowers individuals to track, reduce, and visualize their carbon footprint. Designed with sustainability in mind, it provides insights, eco goal-setting, and rich visual analytics to make climate-conscious living accessible and actionable.
 
-![CarbonWise Dashboard](![image](https://github.com/user-attachments/assets/fa017bc5-fbfd-4be2-9bce-dba7ca105e2d)
-) <!-- Replace with actual path or hosted image -->
+## Preview
+
+![Dashboard Screenshot](![image](https://github.com/user-attachments/assets/fa017bc5-fbfd-4be2-9bce-dba7ca105e2d)
 
 ---
 
