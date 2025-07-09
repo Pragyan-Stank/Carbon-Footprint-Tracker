@@ -295,7 +295,6 @@ def eco_warrior_stats():
     user_id = "pragyan123"
     streak = get_current_streak(user_id)
     points = calculate_eco_points(user_id)
-    print("📊 EcoWarrior -> Streak:", streak, "| Points:", points)
 
     # Dynamic goal evaluation (replace with DB-driven if needed)
     goals = fetch_user_goals(user_id)
