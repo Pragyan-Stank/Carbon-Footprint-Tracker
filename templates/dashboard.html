@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <title>Carbon Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
       rel="stylesheet"
@@ -16,7 +16,9 @@
     <div class="glass-wrapper">
       <div class="main-glass-container">
         <h1 class="dashboard-title">CarbonWise</h1>
-        <p class="dashboard-subtitle">AI powered carbon footprint management dashboard</p>
+        <p class="dashboard-subtitle">
+          AI powered carbon footprint management dashboard
+        </p>
 
         <div class="bento-grid">
           <!-- Score Card -->
@@ -287,7 +289,10 @@
                 </div>
                 <div>
                   <strong>Trees Equivalent:</strong>
-                  <span id="treesPlanted" title="24 kg CO₂ = 1 tree/year">--</span> trees
+                  <span id="treesPlanted" title="24 kg CO₂ = 1 tree/year"
+                    >--</span
+                  >
+                  trees
                 </div>
               </div>
             </div>
@@ -304,8 +309,8 @@
 
       function getScoreClass(score) {
         if (score === 0) return "score-none";
-        if (score < 50) return "score-low";
-        if (score < 100) return "score-medium";
+        if (score < 5) return "score-low";
+        if (score < 10) return "score-medium";
         return "score-high";
       }
 
@@ -610,92 +615,60 @@
     <!-- toggle goals -->
     <script>
       async function loadEcoGoals() {
-        const res = await fetch("/api/eco-warrior-stats");
-        const data = await res.json();
+        try {
+          const res = await fetch("/api/eco-warrior-stats");
+          const data = await res.json();
 
-        const container = document.getElementById("ecoGoalList");
-        container.innerHTML = "";
+          const container = document.getElementById("ecoGoalList");
+          container.innerHTML = "";
 
-        const seen = new Set();
-        data.goals.forEach((goal) => {
-          const key = goal.title.toLowerCase().trim();
-          if (seen.has(key)) return;
-          seen.add(key);
+          const seen = new Set();
+          data.goals.forEach((goal) => {
+            const key = goal.title.toLowerCase().trim();
+            if (seen.has(key)) return;
+            seen.add(key);
 
-          const card = document.createElement("div");
-          card.className = "goal-card";
-          if (goal.completed) card.classList.add("completed");
+            const card = document.createElement("div");
+            card.className = "goal-card";
+            if (goal.completed) card.classList.add("completed");
 
-          card.textContent = `${goal.icon} ${goal.title}`;
+            card.textContent = `${goal.icon} ${goal.title}`;
 
-          if (!goal.completed) {
-            card.onclick = () => toggleGoal(goal.title);
-          }
+            if (!goal.completed) {
+              card.onclick = () => toggleGoal(goal.title);
+            }
 
-          container.appendChild(card);
-        });
-      }
+            container.appendChild(card);
+          });
 
-      async function toggleGoal(goalTitle) {
-        await fetch("/api/toggle-goal", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            user_id: "pragyan123",
-            goal_title: goalTitle,
-          }),
-        });
-
-        loadEcoGoals(); // Refresh the list
-      }
-
-      document.addEventListener("DOMContentLoaded", loadEcoGoals);
-    </script>
-
-    <!-- goals -->
-    <script>
-      async function loadEcoGoals() {
-        const res = await fetch("/api/eco-warrior-stats");
-        const data = await res.json();
-
-        const container = document.getElementById("ecoGoalList");
-        container.innerHTML = "";
-
-        const seen = new Set();
-        data.goals.forEach((goal) => {
-          const key = goal.title.toLowerCase().trim();
-          if (seen.has(key)) return;
-          seen.add(key);
-
-          const card = document.createElement("div");
-          card.className = "goal-card";
-          if (goal.completed) card.classList.add("completed");
-
-          card.textContent = `${goal.icon} ${goal.title}`;
-
-          if (!goal.completed) {
-            card.onclick = () => toggleGoal(goal.title);
-          }
-
-          container.appendChild(card);
-        });
-
-        // ✅ Update progress bar and streak
-        updateEcoStats(data);
+          // ✅ Update stats
+          updateEcoStats(data);
+        } catch (err) {
+          console.error("Failed to load Eco Warrior stats:", err);
+        }
       }
 
       function updateEcoStats(data) {
-        // Update streak and points
         document.querySelector(
           ".eco-warrior-points"
         ).textContent = `${data.points} pts`;
-        document.querySelector(
-          ".streak-text"
-        ).textContent = `${data.streak} day streak`;
+        document.querySelector(".streak-text").textContent =
+          data.streak > 0 ? `${data.streak} day streak` : "No active streak";
+        document.querySelector(".streak-icon").textContent =
+          data.streak > 0 ? "🔥" : "❄️";
 
-        // Update progress bar
+        if (data.streak >= 7) {
+          document
+            .querySelector(".eco-warrior-streak")
+            .classList.add("hot-streak");
+        } else {
+          document
+            .querySelector(".eco-warrior-streak")
+            .classList.remove("hot-streak");
+        }
+
         const completed = data.completed_goals;
-        const total = data.total_goals || 1; // avoid divide by 0
+        const total = data.total_goals || 1;
         const percent = Math.round((completed / total) * 100);
 
         document.querySelector(
@@ -714,47 +687,45 @@
           }),
         });
 
-        // ✅ Refresh everything without full page reload
-        loadEcoGoals();
+        loadEcoGoals(); // refresh
       }
 
       document.addEventListener("DOMContentLoaded", loadEcoGoals);
     </script>
 
-  <script>
-  async function generateReport() {
-    try {
-      const reportType = document
+    <script>
+      async function generateReport() {
+        try {
+          const reportType = document
+            .getElementById("reportType")
+            ?.value?.toLowerCase()
+            .includes("month")
+            ? "monthly"
+            : "weekly";
+
+          const res = await fetch(`/api/report-metrics?type=${reportType}`);
+          const data = await res.json();
+
+          console.log("✅ API data:", data); // Debugging aid
+
+          // Update values safely
+          document.getElementById("totalEmissions").textContent =
+            data.total_emissions ?? "--";
+          document.getElementById("reductionPercent").textContent =
+            data.reduction_percent ?? "--";
+          document.getElementById("reportMoneySaved").textContent =
+            data.money_saved ?? "--";
+          document.getElementById("treesPlanted").textContent =
+            data.trees_equivalent ?? "--";
+        } catch (err) {
+          console.error("❌ Failed to load report:", err);
+        }
+      }
+
+      window.addEventListener("DOMContentLoaded", generateReport);
+      document
         .getElementById("reportType")
-        ?.value?.toLowerCase()
-        .includes("month")
-        ? "monthly"
-        : "weekly";
-
-      const res = await fetch(`/api/report-metrics?type=${reportType}`);
-      const data = await res.json();
-
-      console.log("✅ API data:", data); // Debugging aid
-
-      // Update values safely
-      document.getElementById("totalEmissions").textContent =
-        data.total_emissions ?? "--";
-      document.getElementById("reductionPercent").textContent =
-        data.reduction_percent ?? "--";
-      document.getElementById("reportMoneySaved").textContent =
-        data.money_saved ?? "--";
-      document.getElementById("treesPlanted").textContent =
-        data.trees_equivalent ?? "--";
-    } catch (err) {
-      console.error("❌ Failed to load report:", err);
-    }
-  }
-
-  window.addEventListener("DOMContentLoaded", generateReport);
-  document
-    .getElementById("reportType")
-    ?.addEventListener("change", generateReport);
-  </script>
-
+        ?.addEventListener("change", generateReport);
+    </script>
   </body>
 </html>
