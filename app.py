@@ -22,7 +22,7 @@ DB_NAME = 'carbon_scores.db'
 app = Flask(__name__)
 
 init_db()
-
+seed_default_goals("pragyan123")
 
 # Load joblib files
 pipeline = joblib.load("./notebooks/best_carbon_emission_model.joblib")
