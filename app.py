@@ -104,7 +104,7 @@ def dashboard():
     except:
         diff_percent = 0
 
-    # ✅ Fetch recent activities
+    # Fetch recent activities
     recent_activities = get_recent_activities()
 
     return render_template(
@@ -217,7 +217,7 @@ def predict():
 
     # Predict using pipeline
     prediction = pipeline.predict(input_df)[0]
-    prediction = round(prediction/1000, 2)
+    prediction = round(prediction/1000, 2)    # to convert from grams to kgs we divide by 1000
 
     user_id = "pragyan123"
     insert_score(user_id, prediction)
@@ -250,12 +250,12 @@ def emissions_by_category():
     # Convert query result to dictionary
     emissions = {row[0]: round(row[1], 2) for row in data}
 
-    # ✅ Ensure all categories appear even if 0
+    # Ensure all categories appear even if 0
     default_categories = ["Transport", "Food", "Energy", "Shopping"]
     for cat in default_categories:
         emissions.setdefault(cat, 0.0)
 
-    # ✅ Sort the dictionary (optional for visual consistency)
+    # Sort the dictionary (optional for visual consistency)
     emissions = dict(sorted(emissions.items()))
 
     return jsonify(emissions)
